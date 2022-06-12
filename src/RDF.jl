@@ -1,10 +1,11 @@
-""" Generic Julia interface for RDF graphs.
-"""
 module RDF
+
 export Expression, Statement, Node, Edge, BaseURI, Prefix,
-  Resource, ResourceURI, ResourceCURIE, Literal, Blank, Triple, Quad
+  Resource, ResourceURI, ResourceCURIE, Literal, Blank, Triple, Quad,
+  RDF_DT_FORMAT
 
 using AutoHashEquals
+using Dates: @dateformat_str
 
 # Data types
 ############
@@ -35,9 +36,10 @@ end
 
 @auto_hash_equals struct Literal <: Node
   value::Any
-  language::String
-  Literal(value::Any, language::String="") = new(value, language)
+  langordt::String
+  Literal(value::Any, langordt::String="") = new(value, langordt)
 end
+# Literal(value::Int) = Literal(value,"http://www.w3.org/2001/XMLSchema#int")
 
 @auto_hash_equals struct Blank <: Node
   name::String
@@ -57,6 +59,10 @@ end
   object::Node
   graph::Resource
 end
+
+# XSD-compliant DateTime format that supports the Z timezone code for UTC
+const RDF_DT_FORMAT = dateformat"y-m-dTH:M:SZ" 
+const RDF_TIME_FORMAT = dateformat"H:M:SZ" 
 
 # Convenience constructors
 Prefix(name::String) = Prefixes.prefix(name)
@@ -96,7 +102,6 @@ add_prefix!("xsd", "http://www.w3.org/2001/XMLSchema#")
 add_prefix!("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
 add_prefix!("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
 add_prefix!("owl", "http://www.w3.org/2002/07/owl#")
-
 add_prefix!("schema", "http://schema.org/")
 add_prefix!("skos", "http://www.w3.org/2004/02/skos/core#")
 add_prefix!("prov", "http://www.w3.org/ns/prov#")

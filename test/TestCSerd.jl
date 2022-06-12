@@ -12,7 +12,7 @@ stmts = SerdStatement[]
 statement_sink = stmt -> push!(stmts, stmt)
 reader = serd_reader_new(SERD_TURTLE, nothing, nothing, statement_sink, nothing)
 serd_reader_read_file(reader, TurtleEx1.turtle_path)
-@test stmts == TurtleEx1.serd_triples
+@test Set(stmts) == Set(TurtleEx1.serd_triples)
 
 # Test read of triples from string.
 stmts = SerdStatement[]
@@ -61,13 +61,16 @@ end
 
 # Test write of single triple.
 buf = IOBuffer()
-writer = serd_writer_new(SERD_TURTLE, SerdStyles(0), buf)
+writer = serd_writer_new(SERD_TURTLE, SerdStyles(1), buf)
 serd_writer_write_statement(writer, TurtleEx1.serd_triples[1])
 serd_writer_finish(writer)
 text = String(take!(buf))
-@test normalize_whitespace(text) == """
+@show text
+tnorm = normalize_whitespace(text)
+@show tnorm
+@test tnorm == """
 <http://www.w3.org/TR/rdf-syntax-grammar>
-  dc:title \"RDF/XML Syntax Specification (Revised)\" .
+  dc:title "RDF/XML Syntax Specification (Revised)" .
 """
 
 # Test write of single quad.

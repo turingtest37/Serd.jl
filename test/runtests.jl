@@ -3,9 +3,9 @@ using Test
 include("./data/turtle_ex1.jl")
 
 @testset "CSerd" begin
-  include("CSerd.jl")
+  include("TestCSerd.jl")
 end
 
 @testset "Serd" begin
-  include("Serd.jl")
+  include("TestSerd.jl")
 end

@@ -6,6 +6,8 @@ include("CSerd.jl")
 include("RDF.jl")
 using .CSerd
 using .RDF
+using .RDF.Prefixes
+using Dates
 
 # Reader
 ########
@@ -13,10 +15,23 @@ using .RDF
 """ Read RDF from file.
 """
 function read_rdf_file(path::String; kw...)::Vector{Statement}
+  pfxs = Prefix[]
   stmts = Statement[]
-  read_rdf_file(path; kw...) do stmt
-    push!(stmts, stmt)
+  buri::Union{BaseURI,Nothing} = nothing
+
+  function f(pfx::Prefix)
+    # @show nm uri
+    push!(pfxs, pfx)
   end
+  f(stmt::Statement) = push!(stmts, stmt)
+  function f(uri::BaseURI)
+    # @show uri
+    buri = uri
+  end
+
+  read_rdf_file(f, path; kw...)
+  @show pfxs buri
+
   stmts
 end
 
@@ -103,6 +118,8 @@ end
 
 # https://www.w3.org/TR/rdf11-concepts/#section-Datatypes
 const NS_XSD = "http://www.w3.org/2001/XMLSchema#"
+const NS_RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+const XSD_STRING = "$(NS_XSD)string"
 const XSD_BOOLEAN = "$(NS_XSD)boolean"
 const XSD_INTEGER = "$(NS_XSD)integer"
 const XSD_DECIMAL = "$(NS_XSD)decimal"
@@ -111,7 +128,12 @@ const XSD_SHORT = "$(NS_XSD)short"
 const XSD_LONG = "$(NS_XSD)long"
 const XSD_FLOAT = "$(NS_XSD)float"
 const XSD_DOUBLE = "$(NS_XSD)double"
+const XSD_DATETIME = "$(NS_XSD)dateTime"
+const XSD_DATE = "$(NS_XSD)date"
+const XSD_TIME = "$(NS_XSD)time"
+const RDF_HTML = "$(NS_RDF)HTML"
 
+rdf_datatype(::Type{T} where T <: AbstractString) = XSD_STRING
 rdf_datatype(::Type{Bool}) = XSD_BOOLEAN
 rdf_datatype(::Type{Int16}) = XSD_SHORT
 rdf_datatype(::Type{Int32}) = XSD_INT
@@ -120,8 +142,12 @@ rdf_datatype(::Type{Float32}) = XSD_FLOAT
 rdf_datatype(::Type{Float64}) = XSD_DOUBLE
 rdf_datatype(::Type{T}) where T <: Integer = XSD_INTEGER
 rdf_datatype(::Type{T}) where T <: Real = XSD_DECIMAL
+rdf_datatype(::Type{DateTime}) = XSD_DATETIME
+rdf_datatype(::Type{Date}) = XSD_DATE
+rdf_datatype(::Type{Time}) = XSD_TIME
 
 const julia_datatypes = Dict{String,Type}(
+  XSD_STRING => String,
   XSD_BOOLEAN => Bool,
   XSD_INTEGER => BigInt,
   XSD_DECIMAL => BigFloat,
@@ -130,6 +156,10 @@ const julia_datatypes = Dict{String,Type}(
   XSD_LONG => Int64,
   XSD_FLOAT => Float32,
   XSD_DOUBLE => Float64,
+  XSD_DATETIME => DateTime,
+  XSD_DATE => Date,
+  XSD_TIME => Time,
+  RDF_HTML => String
 )
 julia_datatype(datatype::String) = julia_datatypes[datatype]
 
@@ -160,8 +190,8 @@ function to_serd(graph::Union{<:Node,Nothing},
   if isa(object, Literal)
     object_datatype = isa(object.value, AbstractString) ? 
       nothing : SerdNode(rdf_datatype(typeof(object.value)), SERD_URI)
-    object_lang = isempty(object.language) ?
-      nothing : SerdNode(object.language, SERD_LITERAL)
+    object_lang = isempty(object.langordt) ?
+      nothing : SerdNode(object.langordt, SERD_LITERAL)
     object = SerdNode(string(object.value), SERD_LITERAL)
   else
     object = to_serd(object)
@@ -188,6 +218,9 @@ function from_serd(node::SerdNode)::Node
 end
 
 function from_serd(stmt::SerdStatement)::Statement
+  # @show stmt
+  fq(datatype::Resource) = isa(datatype, ResourceCURIE) ? string(prefix(datatype.prefix).uri, datatype.name) : datatype.uri
+
   subject = from_serd(stmt.subject)
   predicate = from_serd(stmt.predicate)
   object = if stmt.object.typ == SERD_LITERAL
@@ -198,8 +231,19 @@ function from_serd(stmt::SerdStatement)::Statement
         Literal(stmt.object.value, stmt.object_lang.value)
       end
     else
-      typ = julia_datatype(stmt.object_datatype.value)
-      Literal(parse(typ, stmt.object.value))
+      # Convert the datatype string to a resource
+      datatype = from_serd(stmt.object_datatype)
+      # Expand the datatype prefix if necessary and convert to Julia type
+      typ = julia_datatype(fq(datatype))
+      if typ == Time
+        Literal(parse(typ, stmt.object.value, RDF_TIME_FORMAT))
+      elseif typ <: TimeType
+        Literal(parse(typ, stmt.object.value, RDF_DT_FORMAT))
+      elseif typ <: AbstractString
+        Literal(string(stmt.object.value))
+      else
+        Literal(parse(typ, stmt.object.value))
+      end
     end
   else
     from_serd(stmt.object)
@@ -212,4 +256,4 @@ function from_serd(stmt::SerdStatement)::Statement
 end
 
 
-end
+ end

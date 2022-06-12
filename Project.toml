@@ -6,6 +6,7 @@ version = "0.3.1"
 
 [deps]
 AutoHashEquals = "15f4f7f2-30c1-5605-9d31-71845cf9641f"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Serd_jll = "0d4e85e1-a563-5338-9f64-3e4dc8b67009"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
