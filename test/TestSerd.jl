@@ -1,9 +1,11 @@
 module TestSerd
+
 using Test
 using Serd, Serd.CSerd, Serd.RDF
 import Serd: to_serd, from_serd
 
 import ..TurtleEx1
+import ..TurtleDT
 
 # Reader
 ########
@@ -82,5 +84,11 @@ stmt = SerdStatement(
 )
 @test to_serd(quad) == stmt
 @test from_serd(stmt) == quad
+
+# Move this eventually to its own module
+ 
+@test Set(TurtleDT.decimal_statement) in Set(read_rdf_string(TurtleDT.turtle))
+
+@test Set(TurtleDT.non_neg_int_statement) in Set(read_rdf_string(TurtleDT.turtle))
 
 end

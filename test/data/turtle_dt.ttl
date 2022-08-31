@@ -1,0 +1,7 @@
+# Should be a float or decimal. Which?
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@base <http://example.org/> .
+
+<http://example.org/thermometer> <setpoint> "122.1"^^xsd:decimal .
+
+<http://example.org/thermometer> <setpoint> "122"^^xsd:nonNegativeInteger .

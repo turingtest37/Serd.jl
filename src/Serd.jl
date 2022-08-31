@@ -1,6 +1,6 @@
 module Serd
 export RDF, read_rdf_file, read_rdf_string, write_rdf, write_rdf_statement,
-  rdf_writer
+  rdf_writer, julia_datatype
 
 include("CSerd.jl")
 include("RDF.jl")
@@ -122,6 +122,7 @@ const NS_RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 const XSD_STRING = "$(NS_XSD)string"
 const XSD_BOOLEAN = "$(NS_XSD)boolean"
 const XSD_INTEGER = "$(NS_XSD)integer"
+const XSD_NON_NEG_INTEGER = "$(NS_XSD)nonNegativeInteger"
 const XSD_DECIMAL = "$(NS_XSD)decimal"
 const XSD_INT = "$(NS_XSD)int"
 const XSD_SHORT = "$(NS_XSD)short"
@@ -150,6 +151,7 @@ const julia_datatypes = Dict{String,Type}(
   XSD_STRING => String,
   XSD_BOOLEAN => Bool,
   XSD_INTEGER => BigInt,
+  XSD_NON_NEG_INTEGER => BigInt,
   XSD_DECIMAL => BigFloat,
   XSD_INT => Int, # or Int32, but better to use platform-specific Int type
   XSD_SHORT => Int16,
