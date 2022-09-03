@@ -14,7 +14,7 @@ using Dates
 
 """ Read RDF from file.
 """
-function read_rdf_file(path::String; kw...)::Vector{Statement}
+function read_rdf_file(path::String; kw...)::Tuple{Vector{Statement}, Vector{Prefix}, Union{BaseURI,Nothing}}
   pfxs = Prefix[]
   stmts = Statement[]
   buri::Union{BaseURI,Nothing} = nothing
@@ -32,7 +32,7 @@ function read_rdf_file(path::String; kw...)::Vector{Statement}
   read_rdf_file(f, path; kw...)
   @show pfxs buri
 
-  stmts
+  stmts,pfxs,buri
 end
 
 """ Read RDF from string.
