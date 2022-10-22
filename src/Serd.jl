@@ -132,6 +132,40 @@ const XSD_DOUBLE = "$(NS_XSD)double"
 const XSD_DATETIME = "$(NS_XSD)dateTime"
 const XSD_DATE = "$(NS_XSD)date"
 const XSD_TIME = "$(NS_XSD)time"
+const XSD_ANYURI = "$(NS_XSD)anyURI"
+
+# ("anyURI" String)
+# ("base64Binary" String)
+# ("boolean" Bool)
+# ("byte" UInt8)
+# ("dateTime" DateTime)
+# ("dateTimeStamp" DateTime)
+# ("decimal" 
+# xsd:double
+# xsd:float
+# xsd:hexBinary
+# xsd:int
+# xsd:integer
+# xsd:language
+# xsd:long
+# xsd:Name
+# xsd:NCName
+# xsd:negativeInteger
+# xsd:NMTOKEN
+# xsd:nonNegativeInteger
+# xsd:nonPositiveInteger
+# xsd:normalizedString
+# xsd:positiveInteger
+# xsd:short
+# xsd:string
+# xsd:token
+# xsd:unsignedByte
+# xsd:unsignedInt
+# xsd:unsignedLong
+# xsd:unsignedShort
+
+
+
 const RDF_HTML = "$(NS_RDF)HTML"
 
 rdf_datatype(::Type{T} where T <: AbstractString) = XSD_STRING
@@ -161,6 +195,7 @@ const julia_datatypes = Dict{String,Type}(
   XSD_DATETIME => DateTime,
   XSD_DATE => Date,
   XSD_TIME => Time,
+  XSD_ANYURI => String,
   RDF_HTML => String
 )
 julia_datatype(datatype::String) = julia_datatypes[datatype]
